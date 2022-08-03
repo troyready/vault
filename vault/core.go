@@ -287,7 +287,7 @@ type Core struct {
 	auditBackends map[string]audit.Factory
 
 	// stateLock protects mutable state
-	stateLock DeadlockRWMutex
+	stateLock RWMutex
 	sealed    *uint32
 
 	standby              bool
@@ -672,6 +672,9 @@ type CoreConfig struct {
 
 	Logger log.Logger
 
+	// Log deadlocks
+	LogDeadlocks bool
+
 	// Disables the trace display for Sentinel checks
 	DisableSentinelTrace bool
 
@@ -833,6 +836,14 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 		conf.NumExpirationWorkers = numExpirationWorkersDefault
 	}
 
+	// Use imported logging deadlock if requested
+	var stateLock RWMutex
+	if conf.LogDeadlocks == true {
+		stateLock = &DeadlockRWMutex{}
+	} else {
+		stateLock = &SyncRWMutex{}
+	}
+
 	// Setup the core
 	c := &Core{
 		entCore:              entCore{},
@@ -851,6 +862,7 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 		sealMigrationDone:    new(uint32),
 		standby:              true,
 		standbyStopCh:        new(atomic.Value),
+		stateLock:            stateLock,
 		baseLogger:           conf.Logger,
 		logger:               conf.Logger.Named("core"),
 		logLevel:             conf.LogLevel,

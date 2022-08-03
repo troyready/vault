@@ -2618,6 +2618,7 @@ func createCoreConfig(c *ServerCommand, config *server.Config, backend physical.
 		CredentialBackends:             c.CredentialBackends,
 		LogicalBackends:                c.LogicalBackends,
 		Logger:                         c.logger,
+		LogDeadlocks:                   config.LogDeadlocks,
 		DisableSentinelTrace:           config.DisableSentinelTrace,
 		DisableCache:                   config.DisableCache,
 		DisableMlock:                   config.DisableMlock,
